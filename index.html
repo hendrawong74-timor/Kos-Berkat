@@ -1,0 +1,244 @@
+import React, { useState } from 'react';
+import { 
+  User, Camera, Printer, Trash2, 
+  ChevronLeft, Calendar, DollarSign, Settings, Save,
+  Image as ImageIcon, X, LayoutGrid, CheckCircle2
+} from 'lucide-react';
+
+export default function App() {
+  // State utama untuk data kamar
+  const [rooms, setRooms] = useState(
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i + 1,
+      tenantName: '',
+      entryDate: '',
+      ktpPhoto: null,
+      payments: [],
+      isOccupied: false
+    }))
+  );
+
+  const [settings, setSettings] = useState({ name: 'Kos Barokah', logo: null });
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [isEditingTenant, setIsEditingTenant] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+
+  // Form States
+  const [tenantForm, setTenantForm] = useState({ tenantName: '', entryDate: '', ktpPhoto: null });
+  const [paymentForm, setPaymentForm] = useState({ amount: '', date: new Date().toISOString().split('T')[0], note: '' });
+  const [settingsForm, setSettingsForm] = useState(settings);
+
+  const handleSaveTenant = () => {
+    if (!tenantForm.tenantName || !tenantForm.entryDate) {
+      alert("Nama & Tanggal Masuk wajib diisi");
+      return;
+    }
+    setRooms(rooms.map(r => r.id === selectedRoomId ? { ...r, ...tenantForm, isOccupied: true } : r));
+    setIsEditingTenant(false);
+  };
+
+  const handleAddPayment = () => {
+    if (!paymentForm.amount) return;
+    const newPayment = { id: Date.now(), ...paymentForm };
+    setRooms(rooms.map(r => r.id === selectedRoomId ? { ...r, payments: [newPayment, ...r.payments] } : r));
+    setPaymentForm({ amount: '', date: new Date().toISOString().split('T')[0], note: '' });
+  };
+
+  const handleFileChange = (e, target) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (target === 'tenant') setTenantForm({ ...tenantForm, ktpPhoto: reader.result });
+        if (target === 'settings') setSettingsForm({ ...settingsForm, logo: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const activeRoom = rooms.find(r => r.id === selectedRoomId);
+
+  return (
+    <div className="max-w-md mx-auto bg-slate-50 min-h-screen shadow-xl font-sans text-slate-800 border-x border-slate-200">
+      
+      {/* VIEW: DASHBOARD */}
+      {currentView === 'dashboard' && (
+        <div className="p-0">
+          <div className="bg-indigo-600 text-white p-6 rounded-b-[2rem] shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                {settings.logo ? (
+                  <img src={settings.logo} className="w-10 h-10 rounded-xl bg-white object-cover" />
+                ) : (
+                  <div className="p-2 bg-white/20 rounded-xl"><LayoutGrid size={24} /></div>
+                )}
+                <h1 className="text-xl font-bold">{settings.name}</h1>
+              </div>
+              <button onClick={() => { setSettingsForm(settings); setCurrentView('settings'); }} className="p-2 bg-white/10 rounded-full hover:bg-white/20">
+                <Settings size={20} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                <p className="text-xs opacity-70 uppercase font-bold">Terisi</p>
+                <p className="text-2xl font-black">{rooms.filter(r => r.isOccupied).length}</p>
+              </div>
+              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                <p className="text-xs opacity-70 uppercase font-bold">Kosong</p>
+                <p className="text-2xl font-black">{rooms.filter(r => !r.isOccupied).length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 grid grid-cols-2 gap-3 mt-2">
+            {rooms.map(room => (
+              <button
+                key={room.id}
+                onClick={() => {
+                  setSelectedRoomId(room.id);
+                  setTenantForm({ tenantName: room.tenantName, entryDate: room.entryDate, ktpPhoto: room.ktpPhoto });
+                  setIsEditingTenant(!room.isOccupied);
+                  setCurrentView('detail');
+                }}
+                className={`p-4 rounded-3xl text-left border-2 transition-all active:scale-95 ${
+                  room.isOccupied ? 'bg-white border-indigo-100 shadow-sm' : 'bg-slate-100 border-transparent opacity-60'
+                }`}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${room.isOccupied ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-500'}`}>
+                    #{room.id.toString().padStart(2, '0')}
+                  </span>
+                  {room.isOccupied && <CheckCircle2 size={14} className="text-green-500" />}
+                </div>
+                <p className="text-sm font-bold truncate">{room.isOccupied ? room.tenantName : 'Tersedia'}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: DETAIL KAMAR */}
+      {currentView === 'detail' && activeRoom && (
+        <div className="pb-10">
+          <div className="bg-white p-4 border-b flex items-center justify-between sticky top-0 z-10">
+            <button onClick={() => setCurrentView('dashboard')} className="p-2 hover:bg-slate-100 rounded-full"><ChevronLeft /></button>
+            <h2 className="font-bold">Kamar {activeRoom.id}</h2>
+            <div className="w-10"></div>
+          </div>
+
+          <div className="p-4 space-y-4">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold flex items-center gap-2"><User size={18} /> Penghuni</h3>
+                {!isEditingTenant && <button onClick={() => setIsEditingTenant(true)} className="text-xs text-indigo-600 font-bold uppercase">Edit</button>}
+              </div>
+
+              {isEditingTenant ? (
+                <div className="space-y-3">
+                  <input type="text" placeholder="Nama Lengkap" className="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold" value={tenantForm.tenantName} onChange={e => setTenantForm({...tenantForm, tenantName: e.target.value})} />
+                  <input type="date" className="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold" value={tenantForm.entryDate} onChange={e => setTenantForm({...tenantForm, entryDate: e.target.value})} />
+                  <label className="block p-4 border-2 border-dashed rounded-2xl text-center cursor-pointer">
+                    <input type="file" className="hidden" onChange={e => handleFileChange(e, 'tenant')} />
+                    {tenantForm.ktpPhoto ? <img src={tenantForm.ktpPhoto} className="h-32 mx-auto rounded-lg" /> : <div className="text-slate-400 text-xs font-bold uppercase"><Camera className="mx-auto mb-2" /> Foto KTP</div>}
+                  </label>
+                  <button onClick={handleSaveTenant} className="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg">Simpan Data</button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <p className="text-xl font-bold">{activeRoom.tenantName}</p>
+                    <p className="text-xs text-slate-400 font-bold mt-1 uppercase">Mulai: {activeRoom.entryDate}</p>
+                  </div>
+                  {activeRoom.ktpPhoto && <img src={activeRoom.ktpPhoto} className="w-16 h-16 object-cover rounded-xl border-2 border-white shadow-md" />}
+                </div>
+              )}
+            </div>
+
+            {activeRoom.isOccupied && !isEditingTenant && (
+              <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <h3 className="font-bold flex items-center gap-2 mb-4"><DollarSign size={18} /> Pembayaran</h3>
+                <div className="bg-slate-50 p-4 rounded-2xl space-y-2 mb-4">
+                  <input type="number" placeholder="Jumlah" className="w-full p-3 bg-white rounded-xl outline-none font-bold" value={paymentForm.amount} onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})} />
+                  <input type="text" placeholder="Catatan" className="w-full p-3 bg-white rounded-xl outline-none text-xs" value={paymentForm.note} onChange={e => setPaymentForm({...paymentForm, note: e.target.value})} />
+                  <button onClick={handleAddPayment} className="w-full bg-slate-900 text-white p-3 rounded-xl text-xs font-bold uppercase tracking-wider">Catat Bayar</button>
+                </div>
+                <div className="space-y-2">
+                  {activeRoom.payments.map(p => (
+                    <div key={p.id} className="flex justify-between items-center p-3 border border-slate-100 rounded-xl">
+                      <div>
+                        <p className="font-bold text-sm">Rp {Number(p.amount).toLocaleString('id-ID')}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-bold">{p.date} • {p.note || 'Sewa'}</p>
+                      </div>
+                      <button onClick={() => { setSelectedPayment({...p, room: activeRoom.id, tenant: activeRoom.tenantName}); setCurrentView('receipt'); }} className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Printer size={16} /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: SETTINGS */}
+      {currentView === 'settings' && (
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <button onClick={() => setCurrentView('dashboard')} className="p-2 bg-white rounded-full shadow-sm"><ChevronLeft /></button>
+            <h2 className="text-xl font-bold">Pengaturan</h2>
+          </div>
+          <div className="bg-white p-6 rounded-3xl shadow-sm space-y-4">
+            <div className="text-center mb-4">
+              <label className="cursor-pointer">
+                <input type="file" className="hidden" onChange={e => handleFileChange(e, 'settings')} />
+                <div className="w-24 h-24 bg-slate-100 rounded-3xl mx-auto flex items-center justify-center border-2 border-dashed overflow-hidden">
+                  {settingsForm.logo ? <img src={settingsForm.logo} className="w-full h-full object-cover" /> : <ImageIcon className="text-slate-300" />}
+                </div>
+              </label>
+            </div>
+            <input type="text" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={settingsForm.name} onChange={e => setSettingsForm({...settingsForm, name: e.target.value})} placeholder="Nama Kos" />
+            <button onClick={() => { setSettings(settingsForm); setCurrentView('dashboard'); }} className="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 uppercase tracking-widest"><Save size={18} /> Simpan</button>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: KWITANSI (Tampilan Cetak) */}
+      {currentView === 'receipt' && selectedPayment && (
+        <div className="bg-white min-h-screen">
+          <div className="p-4 flex justify-between items-center border-b print:hidden">
+            <button onClick={() => setCurrentView('detail')} className="p-2"><ChevronLeft /></button>
+            <button onClick={() => window.print()} className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">Cetak</button>
+          </div>
+          <div className="p-8">
+            <div className="border-4 border-slate-900 p-6 space-y-6">
+              <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
+                <div>
+                  <h1 className="text-2xl font-black italic uppercase">{settings.name}</h1>
+                  <p className="text-[10px] font-bold uppercase text-slate-500">Kwitansi Pembayaran</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-slate-400">NOMOR INV</p>
+                  <p className="font-bold">#{selectedPayment.id.toString().slice(-5)}</p>
+                </div>
+              </div>
+              <div className="space-y-4 text-sm">
+                <p className="flex font-bold"><span className="w-24 text-slate-400 uppercase text-[10px] self-center">Penyewa</span> : {selectedPayment.tenant}</p>
+                <p className="flex font-bold"><span className="w-24 text-slate-400 uppercase text-[10px] self-center">Kamar</span> : #{selectedPayment.room}</p>
+                <div className="bg-slate-900 text-white p-5 rounded-2xl text-2xl font-black italic">
+                  Rp {Number(selectedPayment.amount).toLocaleString('id-ID')},-
+                </div>
+                <p className="italic font-medium text-slate-600 border-b pb-2">Keperluan: {selectedPayment.note || 'Sewa Bulanan'}</p>
+              </div>
+              <div className="pt-10 flex justify-end">
+                <div className="text-center w-40 border-t-2 border-slate-900 pt-1 text-[10px] font-bold uppercase tracking-widest">
+                  {settings.name}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
