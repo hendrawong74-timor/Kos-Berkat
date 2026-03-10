@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juragan Kos Pro</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Komponen Ikon Sederhana (Pengganti Lucide agar lebih stabil di preview)
+        const Icon = ({ name, size = 20, className = "" }) => {
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        function App() {
+            const [rooms, setRooms] = useState(
+                Array.from({ length: 20 }, (_, i) => ({
+                    id: i + 1,
+                    tenantName: '',
+                    entryDate: '',
+                    isOccupied: false,
+                    payments: []
+                }))
+            );
+
+            const [settings, setSettings] = useState({ name: 'KOS BAROKAH', logo: '' });
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [selectedRoomId, setSelectedRoomId] = useState(null);
+            const [isEditing, setIsEditing] = useState(false);
+            const [activePayment, setActivePayment] = useState(null);
+
+            // Form States
+            const [nameInput, setNameInput] = useState('');
+            const [dateInput, setDateInput] = useState('');
+            const [payAmount, setPayAmount] = useState('');
+            const [payNote, setPayNote] = useState('');
+
+            useEffect(() => {
+                lucide.createIcons();
+            }, [currentView, isEditing]);
+
+            const openRoom = (room) => {
+                setSelectedRoomId(room.id);
+                setNameInput(room.tenantName);
+                setDateInput(room.entryDate);
+                setIsEditing(!room.isOccupied);
+                setCurrentView('detail');
+            };
+
+            const saveTenant = () => {
+                if(!nameInput || !dateInput) return alert("Isi nama dan tanggal!");
+                setRooms(rooms.map(r => r.id === selectedRoomId ? {
+                    ...r, tenantName: nameInput, entryDate: dateInput, isOccupied: true
+                } : r));
+                setIsEditing(false);
+            };
+
+            const addPayment = () => {
+                if(!payAmount) return;
+                const newPay = { id: Date.now(), amount: payAmount, note: payNote, date: new Date().toLocaleDateString('id-ID') };
+                setRooms(rooms.map(r => r.id === selectedRoomId ? {
+                    ...r, payments: [newPay, ...r.payments]
+                } : r));
+                setPayAmount('');
+                setPayNote('');
+            };
+
+            const activeRoom = rooms.find(r => r.id === selectedRoomId);
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative">
+                    
+                    {/* DASHBOARD */}
+                    {currentView === 'dashboard' && (
+                        <div className="pb-20">
+                            <div className="bg-indigo-600 p-6 text-white rounded-b-[2rem] shadow-lg">
+                                <div className="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h1 className="text-2xl font-extrabold tracking-tight">{settings.name}</h1>
+                                        <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Dashboard Pengelola</p>
+                                    </div>
+                                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                                        <Icon name="layout-grid" size={24} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] font-bold opacity-60 uppercase">Kamar Terisi</p>
+                                        <p className="text-2xl font-black">{rooms.filter(r => r.isOccupied).length}</p>
+                                    </div>
+                                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
+                                        <p className="text-[10px] font-bold opacity-60 uppercase">Tersedia</p>
+                                        <p className="text-2xl font-black">{rooms.filter(r => !r.isOccupied).length}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 grid grid-cols-2 gap-4">
+                                {rooms.map(room => (
+                                    <button 
+                                        key={room.id}
+                                        onClick={() => openRoom(room)}
+                                        className={`p-5 rounded-[2rem] text-left border-2 transition-all active:scale-95 ${room.isOccupied ? 'bg-white border-indigo-100 shadow-md' : 'bg-gray-50 border-transparent opacity-60'}`}
+                                    >
+                                        <div className="flex justify-between items-center mb-3">
+                                            <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${room.isOccupied ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 text-gray-500'}`}>
+                                                KMR {room.id}
+                                            </span>
+                                            {room.isOccupied && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>}
+                                        </div>
+                                        <p className="font-bold text-gray-800 truncate">
+                                            {room.isOccupied ? room.tenantName : 'Kosong'}
+                                        </p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* DETAIL KAMAR */}
+                    {currentView === 'detail' && activeRoom && (
+                        <div>
+                            <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10">
+                                <button onClick={() => setCurrentView('dashboard')} className="p-2 hover:bg-gray-100 rounded-full">
+                                    <Icon name="chevron-left" />
+                                </button>
+                                <h2 className="ml-2 font-black text-lg text-gray-800">Detail Kamar {activeRoom.id}</h2>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-100">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-bold flex items-center gap-2"><Icon name="user" size={18} /> Penghuni</h3>
+                                        {!isEditing && <button onClick={() => setIsEditing(true)} className="text-indigo-600 font-bold text-xs uppercase">Edit</button>}
+                                    </div>
+
+                                    {isEditing ? (
+                                        <div className="space-y-4">
+                                            <input type="text" placeholder="Nama Penghuni" className="w-full p-4 rounded-2xl border-none outline-none font-bold shadow-inner" value={nameInput} onChange={e => setNameInput(e.target.value)} />
+                                            <input type="date" className="w-full p-4 rounded-2xl border-none outline-none font-bold shadow-inner" value={dateInput} onChange={e => setDateInput(e.target.value)} />
+                                            <button onClick={saveTenant} className="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black shadow-lg">SIMPAN DATA</button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <p className="text-2xl font-black text-gray-900 leading-none">{activeRoom.tenantName}</p>
+                                            <p className="text-xs font-bold text-gray-400 mt-2 uppercase tracking-tight">Terdaftar: {activeRoom.entryDate}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {activeRoom.isOccupied && !isEditing && (
+                                    <div className="space-y-4">
+                                        <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
+                                            <h3 className="font-bold mb-4 flex items-center gap-2 text-indigo-900"><Icon name="dollar-sign" size={18} /> Catat Bayar</h3>
+                                            <div className="space-y-3">
+                                                <input type="number" placeholder="Jumlah (Rp)" className="w-full p-4 rounded-2xl border-none font-bold text-indigo-700" value={payAmount} onChange={e => setPayAmount(e.target.value)} />
+                                                <input type="text" placeholder="Catatan (Contoh: Sewa Jan)" className="w-full p-4 rounded-2xl border-none text-xs font-bold" value={payNote} onChange={e => setPayNote(e.target.value)} />
+                                                <button onClick={addPayment} className="w-full bg-indigo-700 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-md">Tambahkan Riwayat</button>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest px-2">Riwayat Pembayaran</h3>
+                                            {activeRoom.payments.map(p => (
+                                                <div key={p.id} className="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                                                    <div>
+                                                        <p className="font-black text-gray-800">Rp {Number(p.amount).toLocaleString('id-ID')}</p>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">{p.date} • {p.note || 'Sewa'}</p>
+                                                    </div>
+                                                    <button onClick={() => { setActivePayment({...p, room: activeRoom.id, tenant: activeRoom.tenantName}); setCurrentView('receipt'); }} className="p-3 bg-gray-100 rounded-xl text-gray-600">
+                                                        <Icon name="printer" size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* KWITANSI */}
+                    {currentView === 'receipt' && activePayment && (
+                        <div className="bg-white min-h-screen">
+                            <div className="p-4 border-b flex justify-between items-center no-print">
+                                <button onClick={() => setCurrentView('detail')} className="p-2 bg-gray-100 rounded-full"><Icon name="chevron-left" /></button>
+                                <button onClick={() => window.print()} className="bg-black text-white px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest">Cetak</button>
+                            </div>
+                            <div className="p-8">
+                                <div className="border-[6px] border-black p-8 space-y-8">
+                                    <div className="flex justify-between items-center border-b-4 border-black pb-6">
+                                        <h1 className="text-3xl font-black italic">{settings.name}</h1>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-bold text-gray-400">INV NO</p>
+                                            <p className="font-black">#{activePayment.id.toString().slice(-6)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between border-b-2 border-gray-100 pb-2">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase">Diterima Dari</span>
+                                            <span className="font-bold text-lg">{activePayment.tenant}</span>
+                                        </div>
+                                        <div className="flex justify-between border-b-2 border-gray-100 pb-2">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase">No Kamar</span>
+                                            <span className="font-bold text-lg">Kamar {activePayment.room}</span>
+                                        </div>
+                                        <div className="bg-black text-white p-6 rounded-2xl text-center">
+                                            <p className="text-[10px] opacity-60 mb-2 font-bold uppercase tracking-widest">Total Bayar</p>
+                                            <p className="text-4xl font-black italic">Rp {Number(activePayment.amount).toLocaleString('id-ID')},-</p>
+                                        </div>
+                                        <p className="italic text-gray-500 text-sm font-bold border-b pb-2 tracking-tight">
+                                            Keperluan: Pembayaran Sewa Kos ({activePayment.note || 'Bulanan'})
+                                        </p>
+                                    </div>
+                                    <div className="pt-20 flex justify-end">
+                                        <div className="text-center w-48 border-t-4 border-black pt-2">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em]">{settings.name}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
