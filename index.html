@@ -1,247 +1,1122 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juragan Kos Pro</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        @media print { .no-print { display: none; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Management Kos</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary: #6C63FF;
+  --primary-dark: #5A52D5;
+  --secondary: #FF6584;
+  --bg: #F0F2F5;
+  --card: #FFFFFF;
+  --text: #2D3436;
+  --text-light: #636E72;
+  --success: #00B894;
+  --danger: #E17055;
+  --warning: #FDCB6E;
+  --gradient: linear-gradient(135deg, #6C63FF 0%, #3F3D94 100%);
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: var(--gradient);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.3);
+}
+.header-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.header h1 {
+  font-size: 1.4em;
+  cursor: pointer;
+}
+.header p { font-size: 0.85em; opacity: 0.8; }
+.header-edit-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+/* ===== NAV ===== */
+.nav {
+  display: flex;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  position: sticky;
+  top: 108px;
+  z-index: 99;
+  overflow-x: auto;
+}
+.nav-item {
+  flex: 1;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 0.8em;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+  white-space: nowrap;
+  color: var(--text-light);
+}
+.nav-item.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: rgba(108,99,255,0.05);
+}
+.nav-item span { display: block; font-size: 1.4em; margin-bottom: 2px; }
+
+/* ===== PAGES ===== */
+.page { display: none; padding: 16px; padding-bottom: 30px; }
+.page.active { display: block; }
+
+/* ===== ROOM GRID ===== */
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.room-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.room-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+.room-card.occupied { border-left: 4px solid var(--success); }
+.room-card.vacant { border-left: 4px solid var(--danger); }
+.room-number {
+  font-size: 2em;
+  font-weight: 800;
+  color: var(--primary);
+}
+.room-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72em;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.room-status.occupied { background: #E8F8F5; color: var(--success); }
+.room-status.vacant { background: #FDEBD0; color: var(--danger); }
+.room-tenant { font-size: 0.82em; color: var(--text-light); margin-top: 6px; }
+
+/* ===== FORM ===== */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.88em;
+  color: var(--text-light);
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 1em;
+  transition: border-color 0.3s;
+  background: white;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary { background: var(--gradient); color: white; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,99,255,0.4); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-warning { background: var(--warning); color: var(--text); }
+.btn-block { width: 100%; justify-content: center; }
+.btn-sm { padding: 8px 16px; font-size: 0.85em; border-radius: 8px; }
+.btn-group { display: flex; gap: 10px; margin-top: 16px; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white;
+  border-radius: 24px 24px 0 0;
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modal-header h2 { font-size: 1.2em; color: var(--primary); }
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #F0F0F0;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+/* ===== PAYMENT LIST ===== */
+.payment-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.payment-info h3 { font-size: 1em; }
+.payment-info p { font-size: 0.82em; color: var(--text-light); }
+.payment-amount {
+  font-weight: 800;
+  color: var(--success);
+  font-size: 1em;
+}
+.payment-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+/* ===== KTP PREVIEW ===== */
+.ktp-preview {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 10px;
+  margin-top: 8px;
+  border: 2px dashed #ddd;
+  padding: 4px;
+}
+
+/* ===== RECEIPT ===== */
+.receipt {
+  background: white;
+  border: 2px dashed #ccc;
+  padding: 24px;
+  max-width: 400px;
+  margin: 0 auto;
+  font-family: monospace;
+}
+.receipt-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 12px; margin-bottom: 12px; }
+.receipt-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9em; }
+.receipt-total { border-top: 2px dashed #333; margin-top: 12px; padding-top: 12px; font-weight: bold; font-size: 1.1em; }
+.receipt-footer { text-align: center; margin-top: 16px; font-size: 0.8em; color: #999; }
+
+/* ===== STATS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.stat-card .stat-number { font-size: 2em; font-weight: 800; color: var(--primary); }
+.stat-card .stat-label { font-size: 0.78em; color: var(--text-light); margin-top: 4px; }
+
+.section-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== SEARCH ===== */
+.search-bar {
+  width: 100%;
+  padding: 12px 18px;
+  border: 2px solid #E0E0E0;
+  border-radius: 14px;
+  font-size: 1em;
+  margin-bottom: 16px;
+  background: white;
+}
+.search-bar:focus { outline: none; border-color: var(--primary); }
+
+/* ===== SETTINGS ===== */
+.setting-item {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.setting-item h3 { font-size: 0.95em; margin-bottom: 10px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 0.9em;
+  z-index: 300;
+  display: none;
+  animation: fadeIn 0.3s;
+}
+.toast.show { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+
+/* ===== THEME COLORS ===== */
+.theme-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+.theme-color {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.3s;
+}
+.theme-color.active { border-color: #333; transform: scale(1.2); }
+
+/* ===== PRINT ===== */
+@media print {
+  body * { visibility: hidden; }
+  .receipt, .receipt * { visibility: visible; }
+  .receipt { position: absolute; top: 0; left: 0; }
+}
+</style>
 </head>
-<body class="bg-gray-100">
-    <div id="root"></div>
+<body>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+<!-- HEADER -->
+<div class="header" id="appHeader">
+  <button class="header-edit-btn" onclick="openSettingsModal()">⚙️</button>
+  <img src="" alt="Logo" class="header-logo" id="headerLogo" onclick="openSettingsModal()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%236C63FF%22 width=%22100%22 height=%22100%22 rx=%2250%22/><text x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2240%22 font-family=%22Arial%22>🏠</text></svg>'">
+  <h1 id="headerName">Kos Sejahtera</h1>
+  <p id="headerAddress">Jl. Contoh No. 123</p>
+</div>
 
-        // Komponen Ikon Sederhana (Pengganti Lucide agar lebih stabil di preview)
-        const Icon = ({ name, size = 20, className = "" }) => {
-            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
-        };
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-item active" onclick="showPage('dashboard')"><span>🏠</span>Beranda</div>
+  <div class="nav-item" onclick="showPage('rooms')"><span>🚪</span>Kamar</div>
+  <div class="nav-item" onclick="showPage('payments')"><span>💰</span>Bayar</div>
+  <div class="nav-item" onclick="showPage('settings')"><span>⚙️</span>Setelan</div>
+</div>
 
-        function App() {
-            const [rooms, setRooms] = useState(
-                Array.from({ length: 20 }, (_, i) => ({
-                    id: i + 1,
-                    tenantName: '',
-                    entryDate: '',
-                    isOccupied: false,
-                    payments: []
-                }))
-            );
+<!-- ===== PAGE: DASHBOARD ===== -->
+<div class="page active" id="page-dashboard">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="statTotal">10</div>
+      <div class="stat-label">Total Kamar</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statOccupied">0</div>
+      <div class="stat-label">Terisi</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statVacant">10</div>
+      <div class="stat-label">Kosong</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statIncome">Rp 0</div>
+      <div class="stat-label">Pemasukan Bulan Ini</div>
+    </div>
+  </div>
 
-            const [settings, setSettings] = useState({ name: 'KOS BAROKAH', logo: '' });
-            const [currentView, setCurrentView] = useState('dashboard');
-            const [selectedRoomId, setSelectedRoomId] = useState(null);
-            const [isEditing, setIsEditing] = useState(false);
-            const [activePayment, setActivePayment] = useState(null);
+  <div class="section-title">🚪 Status Kamar</div>
+  <div class="room-grid" id="dashboardRoomGrid"></div>
+</div>
 
-            // Form States
-            const [nameInput, setNameInput] = useState('');
-            const [dateInput, setDateInput] = useState('');
-            const [payAmount, setPayAmount] = useState('');
-            const [payNote, setPayNote] = useState('');
+<!-- ===== PAGE: ROOMS ===== -->
+<div class="page" id="page-rooms">
+  <div class="section-title">🚪 Kelola Kamar Kos</div>
+  <input type="text" class="search-bar" placeholder="🔍 Cari penghuni..." oninput="filterRooms(this.value)">
+  <div class="room-grid" id="roomGrid"></div>
+</div>
 
-            useEffect(() => {
-                lucide.createIcons();
-            }, [currentView, isEditing]);
+<!-- ===== PAGE: PAYMENTS ===== -->
+<div class="page" id="page-payments">
+  <div class="section-title">💰 Riwayat Pembayaran</div>
+  <div class="btn-group" style="margin-bottom:16px">
+    <select id="paymentFilter" class="search-bar" style="margin-bottom:0" onchange="renderPayments()">
+      <option value="all">Semua Kamar</option>
+    </select>
+  </div>
+  <div id="paymentList"></div>
+</div>
 
-            const openRoom = (room) => {
-                setSelectedRoomId(room.id);
-                setNameInput(room.tenantName);
-                setDateInput(room.entryDate);
-                setIsEditing(!room.isOccupied);
-                setCurrentView('detail');
-            };
+<!-- ===== PAGE: SETTINGS ===== -->
+<div class="page" id="page-settings">
+  <div class="section-title">⚙️ Pengaturan Kos</div>
 
-            const saveTenant = () => {
-                if(!nameInput || !dateInput) return alert("Isi nama dan tanggal!");
-                setRooms(rooms.map(r => r.id === selectedRoomId ? {
-                    ...r, tenantName: nameInput, entryDate: dateInput, isOccupied: true
-                } : r));
-                setIsEditing(false);
-            };
+  <div class="setting-item">
+    <h3>📝 Nama Kos</h3>
+    <div class="form-group">
+      <input type="text" id="settKosName" placeholder="Nama Kos">
+    </div>
+    <div class="form-group">
+      <label>Alamat Kos</label>
+      <input type="text" id="settKosAddress" placeholder="Alamat Kos">
+    </div>
+    <div class="form-group">
+      <label>No. Telepon Pemilik</label>
+      <input type="text" id="settKosPhone" placeholder="08xxxxxxxxxx">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="saveKosInfo()">💾 Simpan Info Kos</button>
+  </div>
 
-            const addPayment = () => {
-                if(!payAmount) return;
-                const newPay = { id: Date.now(), amount: payAmount, note: payNote, date: new Date().toLocaleDateString('id-ID') };
-                setRooms(rooms.map(r => r.id === selectedRoomId ? {
-                    ...r, payments: [newPay, ...r.payments]
-                } : r));
-                setPayAmount('');
-                setPayNote('');
-            };
+  <div class="setting-item">
+    <h3>🖼️ Logo Kos</h3>
+    <div class="form-group">
+      <input type="file" id="settLogoInput" accept="image/*" onchange="previewLogo(event)">
+      <img id="settLogoPreview" class="ktp-preview" style="display:none; margin-top:10px;">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="saveLogo()">💾 Simpan Logo</button>
+  </div>
 
-            const activeRoom = rooms.find(r => r.id === selectedRoomId);
+  <div class="setting-item">
+    <h3>🎨 Tema Warna</h3>
+    <div class="theme-picker" id="themePicker">
+      <div class="theme-color active" style="background:linear-gradient(135deg,#6C63FF,#3F3D94)" data-primary="#6C63FF" data-dark="#3F3D94" onclick="changeTheme(this)"></div>
+      <div class="theme-color" style="background:linear-gradient(135deg,#E17055,#D63031)" data-primary="#E17055" data-dark="#D63031" onclick="changeTheme(this)"></div>
+      <div class="theme-color" style="background:linear-gradient(135deg,#00B894,#00A885)" data-primary="#00B894" data-dark="#00A885" onclick="changeTheme(this)"></div>
+      <div class="theme-color" style="background:linear-gradient(135deg,#0984E3,#074291)" data-primary="#0984E3" data-dark="#074291" onclick="changeTheme(this)"></div>
+      <div class="theme-color" style="background:linear-gradient(135deg,#E84393,#B83280)" data-primary="#E84393" data-dark="#B83280" onclick="changeTheme(this)"></div>
+      <div class="theme-color" style="background:linear-gradient(135deg,#FD9644,#E67E22)" data-primary="#FD9644" data-dark="#E67E22" onclick="changeTheme(this)"></div>
+    </div>
+  </div>
 
-            return (
-                <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative">
-                    
-                    {/* DASHBOARD */}
-                    {currentView === 'dashboard' && (
-                        <div className="pb-20">
-                            <div className="bg-indigo-600 p-6 text-white rounded-b-[2rem] shadow-lg">
-                                <div className="flex justify-between items-center mb-6">
-                                    <div>
-                                        <h1 className="text-2xl font-extrabold tracking-tight">{settings.name}</h1>
-                                        <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Dashboard Pengelola</p>
-                                    </div>
-                                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
-                                        <Icon name="layout-grid" size={24} />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] font-bold opacity-60 uppercase">Kamar Terisi</p>
-                                        <p className="text-2xl font-black">{rooms.filter(r => r.isOccupied).length}</p>
-                                    </div>
-                                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] font-bold opacity-60 uppercase">Tersedia</p>
-                                        <p className="text-2xl font-black">{rooms.filter(r => !r.isOccupied).length}</p>
-                                    </div>
-                                </div>
-                            </div>
+  <div class="setting-item">
+    <h3>💰 Harga Sewa per Bulan</h3>
+    <div class="form-group">
+      <input type="text" id="settRentPrice" placeholder="500000" oninput="formatRupiah(this)">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="saveRentPrice()">💾 Simpan Harga</button>
+  </div>
 
-                            <div className="p-4 grid grid-cols-2 gap-4">
-                                {rooms.map(room => (
-                                    <button 
-                                        key={room.id}
-                                        onClick={() => openRoom(room)}
-                                        className={`p-5 rounded-[2rem] text-left border-2 transition-all active:scale-95 ${room.isOccupied ? 'bg-white border-indigo-100 shadow-md' : 'bg-gray-50 border-transparent opacity-60'}`}
-                                    >
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${room.isOccupied ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 text-gray-500'}`}>
-                                                KMR {room.id}
-                                            </span>
-                                            {room.isOccupied && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>}
-                                        </div>
-                                        <p className="font-bold text-gray-800 truncate">
-                                            {room.isOccupied ? room.tenantName : 'Kosong'}
-                                        </p>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+  <div class="setting-item">
+    <h3>📦 Backup & Reset</h3>
+    <div class="btn-group">
+      <button class="btn btn-success btn-sm" onclick="exportData()">📤 Export Data</button>
+      <button class="btn btn-warning btn-sm" onclick="document.getElementById('importFile').click()">📥 Import Data</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-danger btn-sm btn-block" onclick="resetAllData()">🗑️ Reset Semua Data</button>
+    </div>
+  </div>
+</div>
 
-                    {/* DETAIL KAMAR */}
-                    {currentView === 'detail' && activeRoom && (
-                        <div>
-                            <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10">
-                                <button onClick={() => setCurrentView('dashboard')} className="p-2 hover:bg-gray-100 rounded-full">
-                                    <Icon name="chevron-left" />
-                                </button>
-                                <h2 className="ml-2 font-black text-lg text-gray-800">Detail Kamar {activeRoom.id}</h2>
-                            </div>
+<!-- ===== MODAL: DETAIL KAMAR ===== -->
+<div class="modal-overlay" id="roomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Kamar 1</h2>
+      <button class="modal-close" onclick="closeModal('roomModal')">✕</button>
+    </div>
+    <div id="roomModalContent"></div>
+  </div>
+</div>
 
-                            <div className="p-6 space-y-6">
-                                <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-100">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="font-bold flex items-center gap-2"><Icon name="user" size={18} /> Penghuni</h3>
-                                        {!isEditing && <button onClick={() => setIsEditing(true)} className="text-indigo-600 font-bold text-xs uppercase">Edit</button>}
-                                    </div>
+<!-- ===== MODAL: FORM PENGHUNI ===== -->
+<div class="modal-overlay" id="tenantModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="tenantModalTitle">Tambah Penghuni</h2>
+      <button class="modal-close" onclick="closeModal('tenantModal')">✕</button>
+    </div>
+    <form onsubmit="saveTenant(event)">
+      <input type="hidden" id="tenantRoomId">
+      <div class="form-group">
+        <label>👤 Nama Lengkap</label>
+        <input type="text" id="tenantName" required placeholder="Nama lengkap penghuni">
+      </div>
+      <div class="form-group">
+        <label>📱 No. HP</label>
+        <input type="tel" id="tenantPhone" required placeholder="08xxxxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>📅 Tanggal Masuk</label>
+        <input type="date" id="tenantDate" required>
+      </div>
+      <div class="form-group">
+        <label>📍 Daerah Asal</label>
+        <input type="text" id="tenantOrigin" required placeholder="Kota / Kabupaten asal">
+      </div>
+      <div class="form-group">
+        <label>🎓 Kampus</label>
+        <input type="text" id="tenantCampus" placeholder="Nama kampus (opsional)">
+      </div>
+      <div class="form-group">
+        <label>📚 Fakultas</label>
+        <input type="text" id="tenantFaculty" placeholder="Fakultas (opsional)">
+      </div>
+      <div class="form-group">
+        <label>🪪 Foto KTP</label>
+        <input type="file" id="tenantKtp" accept="image/*" onchange="previewKtp(event)">
+        <img id="ktpPreview" class="ktp-preview" style="display:none;">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">💾 Simpan Data Penghuni</button>
+    </form>
+  </div>
+</div>
 
-                                    {isEditing ? (
-                                        <div className="space-y-4">
-                                            <input type="text" placeholder="Nama Penghuni" className="w-full p-4 rounded-2xl border-none outline-none font-bold shadow-inner" value={nameInput} onChange={e => setNameInput(e.target.value)} />
-                                            <input type="date" className="w-full p-4 rounded-2xl border-none outline-none font-bold shadow-inner" value={dateInput} onChange={e => setDateInput(e.target.value)} />
-                                            <button onClick={saveTenant} className="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black shadow-lg">SIMPAN DATA</button>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <p className="text-2xl font-black text-gray-900 leading-none">{activeRoom.tenantName}</p>
-                                            <p className="text-xs font-bold text-gray-400 mt-2 uppercase tracking-tight">Terdaftar: {activeRoom.entryDate}</p>
-                                        </div>
-                                    )}
-                                </div>
+<!-- ===== MODAL: BAYAR ===== -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>💳 Tambah Pembayaran</h2>
+      <button class="modal-close" onclick="closeModal('payModal')">✕</button>
+    </div>
+    <form onsubmit="savePayment(event)">
+      <input type="hidden" id="payRoomId">
+      <div class="form-group">
+        <label>🚪 Kamar</label>
+        <select id="payRoomSelect" required></select>
+      </div>
+      <div class="form-group">
+        <label>📅 Tanggal Bayar</label>
+        <input type="date" id="payDate" required>
+      </div>
+      <div class="form-group">
+        <label>📆 Bulan Sewa</label>
+        <input type="month" id="payMonth" required>
+      </div>
+      <div class="form-group">
+        <label>💰 Jumlah (Rp)</label>
+        <input type="text" id="payAmount" required placeholder="500000" oninput="formatRupiah(this)">
+      </div>
+      <div class="form-group">
+        <label>📝 Keterangan</label>
+        <input type="text" id="payNote" placeholder="Bayar sewa bulan...">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">💾 Simpan Pembayaran</button>
+    </form>
+  </div>
+</div>
 
-                                {activeRoom.isOccupied && !isEditing && (
-                                    <div className="space-y-4">
-                                        <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
-                                            <h3 className="font-bold mb-4 flex items-center gap-2 text-indigo-900"><Icon name="dollar-sign" size={18} /> Catat Bayar</h3>
-                                            <div className="space-y-3">
-                                                <input type="number" placeholder="Jumlah (Rp)" className="w-full p-4 rounded-2xl border-none font-bold text-indigo-700" value={payAmount} onChange={e => setPayAmount(e.target.value)} />
-                                                <input type="text" placeholder="Catatan (Contoh: Sewa Jan)" className="w-full p-4 rounded-2xl border-none text-xs font-bold" value={payNote} onChange={e => setPayNote(e.target.value)} />
-                                                <button onClick={addPayment} className="w-full bg-indigo-700 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-md">Tambahkan Riwayat</button>
-                                            </div>
-                                        </div>
+<!-- ===== MODAL: KWITANSI ===== -->
+<div class="modal-overlay" id="receiptModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🧾 Kwitansi Pembayaran</h2>
+      <button class="modal-close" onclick="closeModal('receiptModal')">✕</button>
+    </div>
+    <div id="receiptContent"></div>
+    <button class="btn btn-primary btn-block" onclick="printReceipt()" style="margin-top:16px">🖨️ Cetak Kwitansi</button>
+  </div>
+</div>
 
-                                        <div className="space-y-3">
-                                            <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest px-2">Riwayat Pembayaran</h3>
-                                            {activeRoom.payments.map(p => (
-                                                <div key={p.id} className="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
-                                                    <div>
-                                                        <p className="font-black text-gray-800">Rp {Number(p.amount).toLocaleString('id-ID')}</p>
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">{p.date} • {p.note || 'Sewa'}</p>
-                                                    </div>
-                                                    <button onClick={() => { setActivePayment({...p, room: activeRoom.id, tenant: activeRoom.tenantName}); setCurrentView('receipt'); }} className="p-3 bg-gray-100 rounded-xl text-gray-600">
-                                                        <Icon name="printer" size={16} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-                    {/* KWITANSI */}
-                    {currentView === 'receipt' && activePayment && (
-                        <div className="bg-white min-h-screen">
-                            <div className="p-4 border-b flex justify-between items-center no-print">
-                                <button onClick={() => setCurrentView('detail')} className="p-2 bg-gray-100 rounded-full"><Icon name="chevron-left" /></button>
-                                <button onClick={() => window.print()} className="bg-black text-white px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest">Cetak</button>
-                            </div>
-                            <div className="p-8">
-                                <div className="border-[6px] border-black p-8 space-y-8">
-                                    <div className="flex justify-between items-center border-b-4 border-black pb-6">
-                                        <h1 className="text-3xl font-black italic">{settings.name}</h1>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-bold text-gray-400">INV NO</p>
-                                            <p className="font-black">#{activePayment.id.toString().slice(-6)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between border-b-2 border-gray-100 pb-2">
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase">Diterima Dari</span>
-                                            <span className="font-bold text-lg">{activePayment.tenant}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b-2 border-gray-100 pb-2">
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase">No Kamar</span>
-                                            <span className="font-bold text-lg">Kamar {activePayment.room}</span>
-                                        </div>
-                                        <div className="bg-black text-white p-6 rounded-2xl text-center">
-                                            <p className="text-[10px] opacity-60 mb-2 font-bold uppercase tracking-widest">Total Bayar</p>
-                                            <p className="text-4xl font-black italic">Rp {Number(activePayment.amount).toLocaleString('id-ID')},-</p>
-                                        </div>
-                                        <p className="italic text-gray-500 text-sm font-bold border-b pb-2 tracking-tight">
-                                            Keperluan: Pembayaran Sewa Kos ({activePayment.note || 'Bulanan'})
-                                        </p>
-                                    </div>
-                                    <div className="pt-20 flex justify-end">
-                                        <div className="text-center w-48 border-t-4 border-black pt-2">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em]">{settings.name}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
+<script>
+// ===== DATA STORE =====
+const DB_KEY = 'kosManagementDB';
+let DB = loadDB();
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+function defaultDB() {
+  return {
+    kosName: 'Kos Sejahtera',
+    kosAddress: 'Jl. Contoh No. 123',
+    kosPhone: '081234567890',
+    kosLogo: '',
+    rentPrice: 500000,
+    theme: { primary: '#6C63FF', dark: '#3F3D94' },
+    rooms: Array.from({length:10}, (_,i) => ({
+      id: i+1,
+      tenant: null
+    })),
+    payments: []
+  };
+}
+
+function loadDB() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DB_KEY));
+    if (d && d.rooms) return d;
+  } catch(e) {}
+  return defaultDB();
+}
+
+function saveDB() {
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
+}
+
+// ===== INIT =====
+function init() {
+  applyTheme();
+  updateHeader();
+  updateStats();
+  renderDashboardRooms();
+  renderRooms();
+  renderPayments();
+  loadSettings();
+}
+
+// ===== NAVIGATION =====
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item')[['dashboard','rooms','payments','settings'].indexOf(page)].classList.add('active');
+  if(page==='payments') populatePayRoomSelect();
+  if(page==='dashboard') { updateStats(); renderDashboardRooms(); }
+}
+
+// ===== HEADER =====
+function updateHeader() {
+  document.getElementById('headerName').textContent = DB.kosName;
+  document.getElementById('headerAddress').textContent = DB.kosAddress;
+  if (DB.kosLogo) {
+    document.getElementById('headerLogo').src = DB.kosLogo;
+  }
+}
+
+// ===== STATS =====
+function updateStats() {
+  const occupied = DB.rooms.filter(r => r.tenant).length;
+  const now = new Date();
+  const thisMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const income = DB.payments
+    .filter(p => p.date && p.date.startsWith(thisMonth))
+    .reduce((s,p) => s + (p.amount||0), 0);
+
+  document.getElementById('statTotal').textContent = DB.rooms.length;
+  document.getElementById('statOccupied').textContent = occupied;
+  document.getElementById('statVacant').textContent = DB.rooms.length - occupied;
+  document.getElementById('statIncome').textContent = formatRp(income);
+}
+
+// ===== FORMAT RUPIAH =====
+function formatRp(num) {
+  return 'Rp ' + Number(num).toLocaleString('id-ID');
+}
+
+function formatRupiah(input) {
+  let val = input.value.replace(/\D/g, '');
+  input.value = val ? Number(val).toLocaleString('id-ID') : '';
+}
+
+function parseRupiah(str) {
+  return parseInt(String(str).replace(/\D/g, '')) || 0;
+}
+
+// ===== RENDER ROOMS =====
+function renderRoomCard(room) {
+  const t = room.tenant;
+  return `
+    <div class="room-card ${t ? 'occupied' : 'vacant'}" onclick="openRoomModal(${room.id})">
+      <div class="room-number">${room.id}</div>
+      <div class="room-status ${t ? 'occupied' : 'vacant'}">${t ? '✅ Terisi' : '🔴 Kosong'}</div>
+      ${t ? `<div class="room-tenant">${t.name}</div>` : ''}
+    </div>`;
+}
+
+function renderDashboardRooms() {
+  document.getElementById('dashboardRoomGrid').innerHTML = DB.rooms.map(renderRoomCard).join('');
+}
+
+function renderRooms(filter='') {
+  const filtered = DB.rooms.filter(r => {
+    if (!filter) return true;
+    const f = filter.toLowerCase();
+    return r.id.toString().includes(f) || (r.tenant && r.tenant.name.toLowerCase().includes(f));
+  });
+  document.getElementById('roomGrid').innerHTML = filtered.map(renderRoomCard).join('');
+}
+
+function filterRooms(val) { renderRooms(val); }
+
+// ===== ROOM MODAL =====
+function openRoomModal(id) {
+  const room = DB.rooms.find(r => r.id === id);
+  document.getElementById('modalTitle').textContent = '🚪 Kamar ' + id;
+  const t = room.tenant;
+  let html = '';
+
+  if (t) {
+    html = `
+      <div style="text-align:center;margin-bottom:16px">
+        ${t.ktpPhoto ? `<img src="${t.ktpPhoto}" style="width:100%;max-width:280px;border-radius:12px;margin-bottom:12px;">` : ''}
+      </div>
+      <div style="background:#F8F9FA;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <p><strong>👤 Nama:</strong> ${t.name}</p>
+        <p style="margin-top:8px"><strong>📱 No. HP:</strong> ${t.phone}</p>
+        <p style="margin-top:8px"><strong>📅 Tgl Masuk:</strong> ${formatDate(t.dateIn)}</p>
+        <p style="margin-top:8px"><strong>📍 Daerah Asal:</strong> ${t.origin}</p>
+        ${t.campus ? `<p style="margin-top:8px"><strong>🎓 Kampus:</strong> ${t.campus}</p>` : ''}
+        ${t.faculty ? `<p style="margin-top:8px"><strong>📚 Fakultas:</strong> ${t.faculty}</p>` : ''}
+      </div>
+      <div class="btn-group" style="flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="openTenantForm(${id}, true)">✏️ Edit</button>
+        <button class="btn btn-success btn-sm" onclick="openPaymentForm(${id})">💳 Bayar</button>
+        <button class="btn btn-danger btn-sm" onclick="removeTenant(${id})">🚪 Keluarkan</button>
+      </div>
+      <div class="section-title" style="margin-top:20px">💰 Riwayat Bayar</div>
+      ${renderRoomPayments(id)}`;
+  } else {
+    html = `
+      <div style="text-align:center;padding:30px 0;">
+        <div style="font-size:4em;">🏠</div>
+        <p style="color:var(--text-light);margin:12px 0">Kamar ini masih kosong</p>
+        <button class="btn btn-primary" onclick="openTenantForm(${id})">➕ Tambah Penghuni</button>
+      </div>`;
+  }
+
+  document.getElementById('roomModalContent').innerHTML = html;
+  document.getElementById('roomModal').classList.add('show');
+}
+
+function renderRoomPayments(roomId) {
+  const pays = DB.payments.filter(p => p.roomId === roomId).sort((a,b) => b.date.localeCompare(a.date));
+  if (!pays.length) return '<p style="color:var(--text-light);font-size:0.9em">Belum ada pembayaran</p>';
+  return pays.map(p => `
+    <div class="payment-card">
+      <div class="payment-info">
+        <h3>📆 ${p.month || '-'}</h3>
+        <p>${formatDate(p.date)} ${p.note ? '• '+p.note : ''}</p>
+      </div>
+      <div>
+        <div class="payment-amount">${formatRp(p.amount)}</div>
+        <button class="btn btn-sm btn-warning" style="margin-top:4px;font-size:0.75em" onclick="showReceipt('${p.id}')">🧾 Kwitansi</button>
+      </div>
+    </div>`).join('');
+}
+
+// ===== TENANT FORM =====
+function openTenantForm(roomId, isEdit=false) {
+  closeModal('roomModal');
+  const room = DB.rooms.find(r => r.id === roomId);
+  document.getElementById('tenantRoomId').value = roomId;
+  document.getElementById('tenantModalTitle').textContent = isEdit ? '✏️ Edit Penghuni Kamar '+roomId : '➕ Tambah Penghuni Kamar '+roomId;
+
+  if (isEdit && room.tenant) {
+    const t = room.tenant;
+    document.getElementById('tenantName').value = t.name;
+    document.getElementById('tenantPhone').value = t.phone;
+    document.getElementById('tenantDate').value = t.dateIn;
+    document.getElementById('tenantOrigin').value = t.origin;
+    document.getElementById('tenantCampus').value = t.campus || '';
+    document.getElementById('tenantFaculty').value = t.faculty || '';
+    if (t.ktpPhoto) {
+      document.getElementById('ktpPreview').src = t.ktpPhoto;
+      document.getElementById('ktpPreview').style.display = 'block';
+    }
+  } else {
+    document.getElementById('tenantName').value = '';
+    document.getElementById('tenantPhone').value = '';
+    document.getElementById('tenantDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('tenantOrigin').value = '';
+    document.getElementById('tenantCampus').value = '';
+    document.getElementById('tenantFaculty').value = '';
+    document.getElementById('ktpPreview').style.display = 'none';
+    document.getElementById('tenantKtp').value = '';
+  }
+
+  document.getElementById('tenantModal').classList.add('show');
+}
+
+function previewKtp(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('ktpPreview').src = ev.target.result;
+    document.getElementById('ktpPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveTenant(e) {
+  e.preventDefault();
+  const roomId = parseInt(document.getElementById('tenantRoomId').value);
+  const room = DB.rooms.find(r => r.id === roomId);
+
+  const tenant = {
+    name: document.getElementById('tenantName').value.trim(),
+    phone: document.getElementById('tenantPhone').value.trim(),
+    dateIn: document.getElementById('tenantDate').value,
+    origin: document.getElementById('tenantOrigin').value.trim(),
+    campus: document.getElementById('tenantCampus').value.trim(),
+    faculty: document.getElementById('tenantFaculty').value.trim(),
+    ktpPhoto: document.getElementById('ktpPreview').style.display !== 'none' ? document.getElementById('ktpPreview').src : (room.tenant ? room.tenant.ktpPhoto || '' : '')
+  };
+
+  room.tenant = tenant;
+  saveDB();
+  closeModal('tenantModal');
+  showToast('✅ Data penghuni berhasil disimpan!');
+  renderDashboardRooms();
+  renderRooms();
+  updateStats();
+}
+
+function removeTenant(roomId) {
+  if (!confirm('Yakin ingin mengeluarkan penghuni dari Kamar '+roomId+'?')) return;
+  DB.rooms.find(r => r.id === roomId).tenant = null;
+  saveDB();
+  closeModal('roomModal');
+  showToast('🚪 Penghuni telah dikeluarkan');
+  renderDashboardRooms();
+  renderRooms();
+  updateStats();
+}
+
+// ===== PAYMENT =====
+function openPaymentForm(roomId) {
+  closeModal('roomModal');
+  document.getElementById('payRoomId').value = roomId || '';
+  const now = new Date();
+  document.getElementById('payDate').value = now.toISOString().split('T')[0];
+  document.getElementById('payMonth').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('payAmount').value = DB.rentPrice ? Number(DB.rentPrice).toLocaleString('id-ID') : '';
+  document.getElementById('payNote').value = '';
+  populatePayRoomSelect(roomId);
+  document.getElementById('payModal').classList.add('show');
+}
+
+function populatePayRoomSelect(selected) {
+  const sel = document.getElementById('payRoomSelect');
+  sel.innerHTML = DB.rooms.filter(r => r.tenant).map(r =>
+    `<option value="${r.id}" ${r.id==selected?'selected':''}>Kamar ${r.id} - ${r.tenant.name}</option>`
+  ).join('');
+
+  // Also populate filter
+  const filt = document.getElementById('paymentFilter');
+  filt.innerHTML = '<option value="all">Semua Kamar</option>' +
+    DB.rooms.filter(r => r.tenant).map(r =>
+      `<option value="${r.id}">Kamar ${r.id} - ${r.tenant.name}</option>`
+    ).join('');
+}
+
+function savePayment(e) {
+  e.preventDefault();
+  const payment = {
+    id: 'PAY-' + Date.now(),
+    roomId: parseInt(document.getElementById('payRoomSelect').value),
+    date: document.getElementById('payDate').value,
+    month: document.getElementById('payMonth').value,
+    amount: parseRupiah(document.getElementById('payAmount').value),
+    note: document.getElementById('payNote').value.trim()
+  };
+
+  DB.payments.push(payment);
+  saveDB();
+  closeModal('payModal');
+  showToast('💰 Pembayaran berhasil disimpan!');
+  renderPayments();
+  updateStats();
+}
+
+function renderPayments() {
+  const filter = document.getElementById('paymentFilter').value;
+  let pays = [...DB.payments].sort((a,b) => b.date.localeCompare(a.date));
+  if (filter !== 'all') pays = pays.filter(p => p.roomId == filter);
+
+  if (!pays.length) {
+    document.getElementById('paymentList').innerHTML = `
+      <div style="text-align:center;padding:40px 0;color:var(--text-light)">
+        <div style="font-size:3em">💰</div>
+        <p>Belum ada pembayaran</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('paymentList').innerHTML = pays.map(p => {
+    const room = DB.rooms.find(r => r.id === p.roomId);
+    const tenantName = room && room.tenant ? room.tenant.name : 'Penghuni lama';
+    return `
+      <div class="payment-card">
+        <div class="payment-info">
+          <h3>🚪 Kamar ${p.roomId} - ${tenantName}</h3>
+          <p>📆 ${formatDate(p.date)} • Bulan: ${p.month || '-'}</p>
+          ${p.note ? `<p>📝 ${p.note}</p>` : ''}
+          <div class="payment-actions">
+            <button class="btn btn-sm btn-warning" onclick="showReceipt('${p.id}')">🧾 Kwitansi</button>
+            <button class="btn btn-sm btn-danger" onclick="deletePayment('${p.id}')">🗑️</button>
+          </div>
+        </div>
+        <div class="payment-amount">${formatRp(p.amount)}</div>
+      </div>`;
+  }).join('');
+}
+
+function deletePayment(id) {
+  if (!confirm('Hapus pembayaran ini?')) return;
+  DB.payments = DB.payments.filter(p => p.id !== id);
+  saveDB();
+  renderPayments();
+  updateStats();
+  showToast('🗑️ Pembayaran dihapus');
+}
+
+// ===== RECEIPT =====
+function showReceipt(payId) {
+  const pay = DB.payments.find(p => p.id === payId);
+  if (!pay) return;
+  const room = DB.rooms.find(r => r.id === pay.roomId);
+  const tenantName = room && room.tenant ? room.tenant.name : 'Penghuni';
+
+  const html = `
+    <div class="receipt" id="receiptPrint">
+      <div class="receipt-header">
+        ${DB.kosLogo ? `<img src="${DB.kosLogo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;margin-bottom:8px">` : ''}
+        <h2 style="font-size:1.2em">${DB.kosName}</h2>
+        <p style="font-size:0.8em">${DB.kosAddress}</p>
+        <p style="font-size:0.8em">Telp: ${DB.kosPhone || '-'}</p>
+        <p style="font-size:0.85em;margin-top:8px;font-weight:bold">KWITANSI PEMBAYARAN</p>
+        <p style="font-size:0.75em;color:#999">${pay.id}</p>
+      </div>
+      <div class="receipt-row"><span>Tanggal</span><span>${formatDate(pay.date)}</span></div>
+      <div class="receipt-row"><span>Nama Penghuni</span><span>${tenantName}</span></div>
+      <div class="receipt-row"><span>No. Kamar</span><span>${pay.roomId}</span></div>
+      <div class="receipt-row"><span>Bulan Sewa</span><span>${pay.month || '-'}</span></div>
+      ${pay.note ? `<div class="receipt-row"><span>Keterangan</span><span>${pay.note}</span></div>` : ''}
+      <div class="receipt-row receipt-total"><span>TOTAL</span><span>${formatRp(pay.amount)}</span></div>
+      <div class="receipt-footer">
+        <p>Terima kasih atas pembayarannya 🙏</p>
+        <p style="margin-top:30px">Pemilik Kos</p>
+        <p style="margin-top:30px;border-top:1px solid #ccc;display:inline-block;padding-top:4px">( _________________ )</p>
+      </div>
+    </div>`;
+
+  document.getElementById('receiptContent').innerHTML = html;
+  document.getElementById('receiptModal').classList.add('show');
+}
+
+function printReceipt() {
+  const content = document.getElementById('receiptPrint').outerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html><head><title>Kwitansi</title>
+    <style>
+      body { font-family: monospace; padding: 20px; }
+      .receipt { border: 2px dashed #ccc; padding: 24px; max-width: 400px; margin: 0 auto; }
+      .receipt-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 12px; margin-bottom: 12px; }
+      .receipt-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9em; }
+      .receipt-total { border-top: 2px dashed #333; margin-top: 12px; padding-top: 12px; font-weight: bold; font-size: 1.1em; }
+      .receipt-footer { text-align: center; margin-top: 16px; font-size: 0.8em; color: #999; }
+      img { width:50px;height:50px;border-radius:50%;object-fit:cover; }
+    </style></head><body>${content}</body></html>`);
+  win.document.close();
+  setTimeout(() => { win.print(); }, 500);
+}
+
+// ===== SETTINGS =====
+function loadSettings() {
+  document.getElementById('settKosName').value = DB.kosName;
+  document.getElementById('settKosAddress').value = DB.kosAddress;
+  document.getElementById('settKosPhone').value = DB.kosPhone || '';
+  document.getElementById('settRentPrice').value = DB.rentPrice ? Number(DB.rentPrice).toLocaleString('id-ID') : '';
+  if (DB.kosLogo) {
+    document.getElementById('settLogoPreview').src = DB.kosLogo;
+    document.getElementById('settLogoPreview').style.display = 'block';
+  }
+}
+
+function saveKosInfo() {
+  DB.kosName = document.getElementById('settKosName').value.trim() || 'Kos Saya';
+  DB.kosAddress = document.getElementById('settKosAddress').value.trim();
+  DB.kosPhone = document.getElementById('settKosPhone').value.trim();
+  saveDB();
+  updateHeader();
+  showToast('✅ Info kos berhasil disimpan!');
+}
+
+function previewLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('settLogoPreview').src = ev.target.result;
+    document.getElementById('settLogoPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveLogo() {
+  const src = document.getElementById('settLogoPreview').src;
+  if (src && !src.includes('svg+xml')) {
+    DB.kosLogo = src;
+    saveDB();
+    updateHeader();
+    showToast('🖼️ Logo berhasil disimpan!');
+  } else {
+    showToast('⚠️ Pilih gambar logo terlebih dahulu');
+  }
+}
+
+function saveRentPrice() {
+  DB.rentPrice = parseRupiah(document.getElementById('settRentPrice').value);
+  saveDB();
+  showToast('💰 Harga sewa berhasil disimpan!');
+}
+
+// ===== THEME =====
+function changeTheme(el) {
+  document.querySelectorAll('.theme-color').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  DB.theme = { primary: el.dataset.primary, dark: el.dataset.dark };
+  saveDB();
+  applyTheme();
+}
+
+function applyTheme() {
+  const t = DB.theme;
+  document.documentElement.style.setProperty('--primary', t.primary);
+  document.documentElement.style.setProperty('--primary-dark', t.dark);
+  document.documentElement.style.setProperty('--gradient', `linear-gradient(135deg, ${t.primary} 0%, ${t.dark} 100%)`);
+}
+
+// ===== EXPORT / IMPORT =====
+function exportData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup_kos_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 Data berhasil diexport!');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.rooms) {
+        DB = data;
+        saveDB();
+        init();
+        showToast('📥 Data berhasil diimport!');
+      } else {
+        showToast('⚠️ File tidak valid');
+      }
+    } catch(err) {
+      showToast('⚠️ Gagal membaca file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetAllData() {
+  if (!confirm('⚠️ YAKIN hapus semua data? Tindakan ini tidak bisa dibatalkan!')) return;
+  if (!confirm('⚠️ Benar-benar yakin? Semua data penghuni & pembayaran akan hilang!')) return;
+  DB = defaultDB();
+  saveDB();
+  init();
+  showToast('🗑️ Semua data telah direset');
+}
+
+// ===== HELPERS =====
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function openSettingsModal() {
+  showPage('settings');
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ===== START =====
+init();
+
+// Add payment button to payment page
+document.getElementById('page-payments').insertAdjacentHTML('beforeend',
+  `<button class="btn btn-primary btn-block" style="margin-top:16px;position:sticky;bottom:16px" onclick="openPaymentForm()">➕ Tambah Pembayaran</button>`
+);
+</script>
 </body>
 </html>
